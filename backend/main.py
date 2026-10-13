@@ -14,7 +14,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 import yfinance as yf
 
-from schemas.chat import PromptObject, RequestObject
+from backend.schemas.chat import PromptObject, RequestObject
 
 load_dotenv()
 
