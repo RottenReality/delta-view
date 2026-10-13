@@ -35,4 +35,24 @@ agent = create_agent(
 
 @app.post('/api/chat')
 async def chat(request: RequestObject):
-    pass
+    config = {'configurable': {'threadId':request.threadId}}
+    
+    def generate():
+        for token, _ in agent.stream(
+            {'messages':[
+                SystemMessage('You are a stock analysis assistant. You have the ability to get real-time stock prices, historical stock prices(given a date range), news and balance sheet data for a given ticker symbol.'),
+                HumanMessage(request.prompt.content)
+            ]},
+            stream_mode='messages',
+            config = config
+        ):
+            yield token.content
+            
+    return StreamingResponse(generate(), media_type='text/event-stream',
+                              headers={
+                                  'Cache-Control': 'no-cache, no-transform',
+                                  'Connection': 'keep-alive'
+                              })
+
+if __name__ == '__main__':
+    uvicorn.run(app, host='0.0.0.0', port=8000)
