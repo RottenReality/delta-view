@@ -14,7 +14,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 import yfinance as yf
 
-from backend.schemas.chat import PromptObject, RequestObject
+from schemas.chat import PromptObject, RequestObject
 
 load_dotenv()
 
@@ -27,15 +27,39 @@ model = ChatOpenAI(
 
 checkpointer = InMemorySaver()
 
+@tool('get_stock_price', description='Function that returns the current stock price based on a ticker symbol.')
+def get_stock_price(ticker: str):
+    print('get stock_price tool is being used')
+    stock= yf.Ticker(ticker)
+    return stock.history()['Close'].iloc[-1]
+
+@tool('get_historical_stock_price', description='Function that returns the historical stock price based on a ticker symbol and a date range.')
+def get_historical_stock_price(ticker: str, start_date: str, end_date: str):
+    print('get historical_stock_price tool is being used')
+    stock= yf.Ticker(ticker)
+    return stock.history(start=start_date, end=end_date).to_dict()
+
+@tool('get_balance_sheet', description='Function that returns the balance sheet data for a given ticker symbol in a given year.')
+def get_balance_sheet(ticker: str, year: int):
+    print('get_balance_sheet tool is being used')
+    stock= yf.Ticker(ticker)
+    return stock.balance_sheet(year=year).to_dict()
+
+@tool('get_stock_news', description='Function that returns news based on a given ticker symbol.')
+def get_stock_news(ticker: str):
+    print('get_stock_news tool is being used')
+    stock= yf.Ticker(ticker)
+    return stock.news
+
 agent = create_agent(
     model=model,
     checkpointer=checkpointer,
-    tools = []
+    tools = [get_stock_price, get_historical_stock_price, get_balance_sheet, get_stock_news]
 )
 
 @app.post('/api/chat')
 async def chat(request: RequestObject):
-    config = {'configurable': {'threadId':request.threadId}}
+    config = {'configurable': {'thread_id':request.threadId}}
     
     def generate():
         for token, _ in agent.stream(
