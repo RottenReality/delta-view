@@ -1,7 +1,7 @@
 [project]
 name = "delta-view"
 version = "0.1.0"
-description = "Add your description here"
+description = "Stock research chat assistant: a LangChain agent with yfinance tools behind a FastAPI streaming API"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
